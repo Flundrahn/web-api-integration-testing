@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using Xunit.Abstractions;
 
 namespace WebApi.Tests;
 
