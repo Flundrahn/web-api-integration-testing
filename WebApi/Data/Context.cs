@@ -12,11 +12,9 @@ public class ItemsContext : DbContext
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Item>().HasData(SeedData.Items());
-
-        // NOTE Related data must be added separately via the HasData method to the related
-        // entity's EntityTypeBuilder
     }
 
 }

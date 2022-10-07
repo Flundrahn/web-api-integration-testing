@@ -10,7 +10,6 @@ internal class SeedData
         {
             new Item
             {
-                // NOTE The key value is required so it must be supplied. When a migration is created, the SQL Server provider will enable the insertion of Identity values
                 Id = id++,
                 Name = "Item1",
                 IsComplete = false
