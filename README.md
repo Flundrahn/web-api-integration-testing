@@ -24,7 +24,7 @@ An integration test is making sure that the parts of a program work together, on
 
 The environment must still be controlled, so the principle is similar to a unit test but the reality is more complex, the tests run slower and we encounter many different combinations of units and inputs to test. Too many! We will work smart, have trust in our unit tests, and greatly limit the number of integration tests we run.
 
-![The pyramid of code testing](webapi-pyramid.png)
+![The pyramid of code testing](/screenshot-pyramid.webp)
 
 ## Why It Is
 So, the reason we do integration tests is to see that our parts work together, and it allows it to test things unit tests can't, such as
@@ -211,7 +211,7 @@ With a configured factory, and having made sure the in-memory test DB has data, 
 
 Here we can also note a second use of our SeedData class is we can actually call it from our test to get the collection of resources we know are supposed to be be in the DB, this relieves us from hard coding any resource data in our test, and avoid use of magic strings, so elegant!
 
-![screenshot of terminal indicating passing tests](webapi-screenshot.png)
+![screenshot of terminal indicating passing tests](/screenshot.png)
 
 And look at that speed, what will we do with all the time we have now?? So much time for activities!
 
