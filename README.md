@@ -1,4 +1,5 @@
 # Integration Testing ASP.NET Core 6 Web API
+The following text is written in the style of a blog and not a traditional readme, which is why it is quite verbose, but hopefully helpful for anyone who would like to learn about this subject, as I did. The reader who is only interested in the implementation should focus on the code snippets below, or if experienced could go straight to the code in the test- and api-project. Enjoy.
 
 ## Introduction
 Let's start simple. What is an integration test?
@@ -7,7 +8,7 @@ It can be understood in contrast to unit tests, which test only one function at 
 
 Integration testing however is black magic.
 
-Not really, but it involves so many parts it that when we first learned about it during early days of the DNFS-Bootcamp, it did seem like black magic.
+Not really, but it involves so many parts it that when we first learned about it during early days of the [Salt .NET Fullstack Bootcamp](https://www.salt.study/our-hubs/stockholm/code-bootcamps), it did seem like black magic.
 
 I recently took a course called `ASP.NET Core 6 Web API: Best Practices` on the magnificent website [Pluralsight](https://app.pluralsight.com/) and the veteran dev Steve Smith who held the course, did indeed describe integration testing in ASP.NET as "so easy, there is no excuse not to do it".
 
@@ -81,12 +82,12 @@ class WebApiApplication : WebApplicationFactory<Program>
       // 4.
       var serviceProvider = services.BuildServiceProvider();
       using (var scope = serviceProvider.CreateScope())
-      using (var appContext = scope.ServiceProvider.GetRequiredService<ItemsContext>())
+      using (var dbContext = scope.ServiceProvider.GetRequiredService<ItemsContext>())
       {
         try
         {
           // NOTE Using EnsureCreated is not recommended for relational db if one plans to use EF Migrations, see MS Docs link in end
-          appContext.Database.EnsureCreated();
+          dbContext.Database.EnsureCreated();
         }
         catch (Exception ex)
         {
@@ -114,7 +115,7 @@ Here is a difference from earlier versions of .NET, the Program class is now imp
 
 Easy!
 
-The next thing we do is override the `CreateHost` method, inside this method we do four things.
+The next thing we do is override the `CreateHost` method, inside this method we do five things.
 
 1. Set the environment to "Testing". This could be used inside the API for conditional behavior.
 2. In ConfigureServices we find and remove the normal database context,
