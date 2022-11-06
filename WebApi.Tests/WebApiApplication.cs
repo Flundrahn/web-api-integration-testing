@@ -34,7 +34,7 @@ class WebApiApplication : WebApplicationFactory<Program>
             {
                 try
                 {
-                    // NOTE Using EnsureCreated is not recommended for relational db if one plans to use EF Migrations, see MS Docs link in end
+                    // NOTE Using EnsureCreated is not recommended for relational db if one plans to use EF Migrations, see MS Docs link in end, but should be fine for our test db.
                     dbContext.Database.EnsureCreated();
                 }
                 catch (Exception ex)

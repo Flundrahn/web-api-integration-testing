@@ -1,25 +1,27 @@
 # Integration Testing ASP.NET Core 6 Web API
+
 The following text is written in the style of a blog and not a traditional readme, which is why it is quite verbose, but hopefully helpful for anyone who would like to learn about this subject, as I did. The reader who is only interested in the implementation should focus on the code snippets below, or if experienced could go straight to the code in the test- and api-project. Enjoy.
 
 ## Introduction
+
 Let's start simple. What is an integration test?
 
 It can be understood in contrast to unit tests, which test only one function at a time, isolating it from its environment, controlling the input and state, then examining the result. Unit testing is a science.
 
 Integration testing however is black magic.
 
-Not really, but it involves so many parts it that when we first learned about it during early days of the [Salt .NET Fullstack Bootcamp](https://www.salt.study/our-hubs/stockholm/code-bootcamps), it did seem like black magic.
-
-I recently took a course called `ASP.NET Core 6 Web API: Best Practices` on the magnificent website [Pluralsight](https://app.pluralsight.com/) and the veteran dev Steve Smith who held the course, did indeed describe integration testing in ASP.NET as "so easy, there is no excuse not to do it".
+Not really, but it involves so many parts it seemed that way when we first learned about it in the early days of the [Salt .NET Fullstack Bootcamp](https://www.salt.study/our-hubs/stockholm/code-bootcamps).
 
 Bless you Steve, I hope I will be like you one day (triple namaste emoji).
 
 The goal of this blog post is for the reader and also the author to understand integration tests as a science, and learn how to leverage some of the tools supplied to us by ASP.NET and EF Core.
 
 ## Disclaimer
+
 I will make a lot of statements here, I gone did my best to make sure everything is accurate but my experience is limited and so is time. Therefore, reader beware the risk that I say some incorrect or incomplete tings. There, now I am free.
 
 ## What It Is
+
 An integration test is making sure that the parts of a program work together, one picks a chain of units to test, inputs in one end, and asserts the result on the other end.
 
 The environment must still be controlled, so the principle is similar to a unit test but the reality is more complex, the tests run slower and we encounter many different combinations of units and inputs to test. Too many! We will work smart, have trust in our unit tests, and greatly limit the number of integration tests we run.
@@ -27,6 +29,7 @@ The environment must still be controlled, so the principle is similar to a unit 
 ![The pyramid of code testing](/screenshot-pyramid.webp)
 
 ## Why It Is
+
 So, the reason we do integration tests is to see that our parts work together, and it allows it to test things unit tests can't, such as
 
 - routing
@@ -37,10 +40,12 @@ So, the reason we do integration tests is to see that our parts work together, a
 and more if one thinks harder than I have.
 
 ## How Do It Good
+
 The approach I am describing here applies to .NET 6, it builds upon knowledge from the aforementioned [Pluralsight course](https://app.pluralsight.com/library/courses/aspdotnet-core-6-web-api-best-practices/table-of-contents), on the excellent [Microsoft Docs](https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0) and last but not least on wisdom from Salt's very own [Marcus Hammarberg](https://www.marcusoft.net/2021/11/testing-webapi-with-aspnetcoremvctesting-and-xunit-collections.html).
 
 I have broken it down into three parts
-1. Configuring a `WebApplicationFactory` in a child class `WebApiApplication`, which is here referred to here either by name or as `factory`.
+
+1. Configuring a `WebApplicationFactory` in a child class `WebApiApplication`, which is here referred to by name or as `factory`.
 2. Using EF Core to seed the database
 3. Setting up a xUnit test project
 
@@ -52,7 +57,7 @@ That means that our two projects don't need to communicate over localhost HTTP, 
 
 This is the difficult part, but the beautiful thing we will see is that the solution is so general, that if we only solve it once we can continue using the same solution for all the integration tests we want.
 
-The NuGet package `Microsoft.AspNetCore.Mvc.Testing` provides us with this application factory, I will dump the code to configure it here, then reflect on it part by part.
+The NuGet package `Microsoft.AspNetCore.Mvc.Testing` provides us with this application factory, we also need the package `Microsoft.EntityFrameworkCore.InMemory` for an in-memory database. I will dump the code to configure it here, then reflect on it part by part.
 
 ```cs
 class WebApiApplication : WebApplicationFactory<Program>
@@ -64,14 +69,14 @@ class WebApiApplication : WebApplicationFactory<Program>
 
     // NOTE Here we could use builder.ConfigureLogging to configure logging, which I understand is how we can read what is logged inside our API, even though it is running in-memory of the test.
 
-    builder.ConfigureServices(services => 
+    builder.ConfigureServices(services =>
     {
       // 2.
       var descriptor = services.SingleOrDefault(
         d => d.ServiceType == typeof(DbContextOptions<ItemsContext>)
       );
       services.Remove(descriptor);
-      
+
       // 3.
       string dbName = "DbForTesting";
       services.AddDbContext<ItemsContext>(options =>
@@ -86,7 +91,7 @@ class WebApiApplication : WebApplicationFactory<Program>
       {
         try
         {
-          // NOTE Using EnsureCreated is not recommended for relational db if one plans to use EF Migrations, see MS Docs link in end
+          // NOTE Using EnsureCreated is not recommended for relational db if one plans to use EF Migrations, see MS Docs link in end, but should be fine for our test db.
           dbContext.Database.EnsureCreated();
         }
         catch (Exception ex)
@@ -95,7 +100,7 @@ class WebApiApplication : WebApplicationFactory<Program>
           throw;
         }
       }
-    });    
+    });
 
     // 5.
     return base.CreateHost(builder);
@@ -126,6 +131,7 @@ The next thing we do is override the `CreateHost` method, inside this method we 
 Factory complete.
 
 ### 2. Seed Database
+
 This is something we will set up in our WebApi, even though the main reason we want to do this (right now anyway) is for testing purposes.
 
 For each instance of the test class we will have a fresh new and empty database, since it runs in memory, EF Core provides tools for that let us automatically seed it with values we can test. First, we create a static class that returns a collection of items for us, instances of our Model to store in the DB.
@@ -173,7 +179,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ### 3. xUnit Test Project
 
-A reason xUnit is a good choice over something like nUnit is that xUnit creates a new instance of the test class for each test that is run. 
+A reason xUnit is a good choice over something like nUnit is that xUnit creates a new instance of the test class for each test that is run.
 
 This means that our tests are independent of each other, with no side effects across and we can even put common code in the test class constructor, without sharing the object instances, very useful!
 
@@ -216,7 +222,8 @@ Here we can also note a second use of our SeedData class is we can actually call
 And look at that speed, what will we do with all the time we have now?? So much time for activities!
 
 # About Changes From [Marcusofts](https://www.marcusoft.net/2021/11/testing-webapi-with-aspnetcoremvctesting-and-xunit-collections.html) implementation, and a Finishing Word
-Since this post is aimed towards salties I will make some comments about how and why things are different from Marcus' solution. 
+
+Since this post is aimed towards salties I will make some comments about how and why things are different from Marcus' solution.
 
 - His solution targets .NET 5, mine targets .NET 6
 - His test class makes use of [IClassFixture](https://xunit.net/docs/shared-context#class-fixture) to share the WebApplicationFactory instance between tests. I removed this because
@@ -227,6 +234,7 @@ Since this post is aimed towards salties I will make some comments about how and
 I put a solid amount of research into this, but I cannot understate how smoothly everything went. The test, the seeder, the factory everything ran near perfectly the very first run, this only happens to me in C#, I am telling you this .NET thing will be big.
 
 # Resources
+
 1. https://app.pluralsight.com/library/courses/aspdotnet-core-6-web-api-best-practices/table-of-contents (NOT FREE)
 2. https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0
 3. https://learn.microsoft.com/en-us/ef/core/modeling/data-seeding?source=recommendations
